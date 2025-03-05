@@ -35,22 +35,22 @@ uint64_t move(uint64_t representation, uint8_t shift){
         representation &= 0x7F7F7F7F;
         representation << 1;
     }
-    if (shift && 0x8) // Shift NE
+    if (shift && 0x08) // Shift NE
     {
         representation &= 0x00FEFEFE;
         representation << 7;
     }
-    if (shift && 0x4) // Shift SE
+    if (shift && 0x04) // Shift SE
     {
         representation &= 0x7F7F7F00;
         representation >> 7;
     }
-    if (shift && 0x2) // Shift NW
+    if (shift && 0x02) // Shift NW
     {
         representation &= 0x007F7F7F;
         representation << 9;
     }
-    if (shift && 0x1) // Shift SW
+    if (shift && 0x01) // Shift SW
     {
         representation &= 0x00FEFEFE;
         representation >> 9;
@@ -59,31 +59,52 @@ uint64_t move(uint64_t representation, uint8_t shift){
 
 uint64_t get_legal_moves(Pieces pieces[], int i){
     uint8_t moves = pieces[i].moves;
-    uint64_t legal_moves = 0x0;
+    uint64_t legal_moves = pieces[i].position;
 
-    if(moves == 0x1){ // King
+    switch(moves){
+        case 0x1:{
+            legal_moves = move(pieces[i].position, 0x80) | move(pieces[i].position, 0x40) | move(pieces[i].position, 0x20) | move(pieces[i].position, 0x10) | move(pieces[i].position, 0x8) | move(pieces[i].position, 0x4) | move(pieces[i].position, 0x2) | move(pieces[i].position, 0x1);
+        }
+        case 0x2:{
 
+        }
+        case 0x3:{//bishop
+            
+        }
+        case 0x4:{//knight
+            //North
+            uint64_t north_2 = move(move(legal_moves, 0x80), 0x80);
+            north_2 |= move(north_2, 0x40) | move(north_2, 0x10);
+            //East
+            uint64_t east_2 = move(move(legal_moves, 0x40), 0x40);
+            east_2 |= move(north_2, 0x80) | move(north_2, 0x20);
+            //South
+            uint64_t south_2 = move(move(legal_moves, 0x20), 0x20);
+            south_2 |= move(north_2, 0x40) | move(north_2, 0x10);
+            //West
+            uint64_t west_2 = move(move(legal_moves, 0x10), 0x10);
+            west_2 |= move(north_2, 0x80) | move(north_2, 0x20);
+
+            legal_moves = north_2 | east_2 | south_2 | west_2;
+        }
+        case 0x5:{//rook
+            uint64_t vertical = pieces[i].position;
+            uint64_t horizontal = pieces[i].position;
+            for (int i = 0; i < 7; i++){
+                vertical |= move(legal_moves, 0x80);
+            }
+            for (int i = 0; i < 7; i++){
+                horizontal |= move(legal_moves, 0x40);
+            }
+            legal_moves = vertical | horizontal;
+        }
+        default:{//pawn
+            legal_moves = move(pieces[i].position, 0x80);
+            //take positions
+        }
     }
-    else if (moves == 0x2)//Queen
-    { 
 
-    }
-    else if (moves == 0x3) // Bishop
-    {
-
-    }
-    else if (moves == 0x4) // Knight
-    {
-
-    }
-    else if (moves == 0x5) // Rook
-    {
-
-    }
-    else //Pawn
-    {
-
-    }
+    
 
     return moves;
 }
